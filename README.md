@@ -1,4 +1,4 @@
-# polygon-cut-api
+# polycut api
 A tiny REST API that cuts polygons along a plane
 
 
@@ -9,7 +9,7 @@ A tiny REST API that cuts polygons along a plane
 
 ## Usage
 
-```bash
+```console
 
 // clone the repo
 git clone git@github.com:dominikganghofer/cut-polygon-api.git
