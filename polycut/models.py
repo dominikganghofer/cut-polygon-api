@@ -1,5 +1,4 @@
 from typing import List
-from uuid import UUID
 from pydantic import BaseModel
 from enum import Enum
 
@@ -21,6 +20,11 @@ class CutRequest(BaseModel):
     plane_normal: Vector3D
 
 
+class CutRequestUpdate(BaseModel):
+    id: str
+    request: CutRequest
+
+
 class CutInfo(str, Enum):
     failed_no_intersection = "failed_no_intersection"
     failed_line_vertex_tangent = "failed_line_vertex_tangent"
@@ -38,7 +42,7 @@ class CutResult(BaseModel):
 
 
 class Cut(BaseModel):
-    id: UUID
+    id: str
     request: CutRequest
     result: CutResult
 

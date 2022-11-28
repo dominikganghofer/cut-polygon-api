@@ -1,23 +1,33 @@
+from uuid import uuid4
+
 from typing import List
-from uuid import uuid4, UUID
 from fastapi import FastAPI, HTTPException
 
 from polycut.calculations import try_cut_polygon
-from polycut.models import CutResult, CutRequest, Cut, CutInfo
+from polycut.models import CutResult, CutRequest, Cut, CutInfo, CutRequestUpdate
 
 app = FastAPI()
-db: dict[UUID, Cut] = {}
+db: dict[str, Cut] = {}
 
 
-@app.get("/api/poly-cut", response_model=List[CutResult])
+@app.get("/")
+def index():
+    return {
+        "polycut_api": "/api/poly-cut",
+        "documentation": "/docs",
+        "redoc": "/redoc",
+    }
+
+
+@app.get("/api/poly-cut", response_model=List[Cut])
 def fetch_cuts():
     """ Fetch all cuts """
     # return db as list
     return [cut for cut in db.values()]
 
 
-@app.post("/api/poly-cut")
-def post_cut_request(request: CutRequest, response_model=UUID):
+@app.post("/api/poly-cut", response_model=str)
+def post_cut_request(request: CutRequest):
     """Post a cut request and return the id of the cut"""
     result = try_cut_polygon(request)
     match result.info:
@@ -36,19 +46,19 @@ def post_cut_request(request: CutRequest, response_model=UUID):
         case CutInfo.failed_polygon_less_than_three_vertices:
             raise HTTPException(status_code=400, detail=CutInfo.failed_polygon_less_than_three_vertices)
         case CutInfo.successful:
-            cut_id = uuid4()
+            cut_id = str(uuid4())
             cut = Cut(id=cut_id, request=request, result=result)
             db[cut_id] = cut
             return cut_id
 
 
-@app.put("/api/poly-cut/{cut_id}")
-def put_cut_request(cut_id: UUID, request: CutRequest):
+@app.put("/api/poly-cut/{id}")
+def put_cut_request(update: CutRequestUpdate):
     """Update a cut request"""
-    if cut_id not in db.keys():
+    if update.id not in db.keys():
         raise HTTPException(status_code=404, detail="Cut not found")
 
-    result = try_cut_polygon(request)
+    result = try_cut_polygon(update.request)
     match result.info:
         case CutInfo.failed_no_intersection:
             raise HTTPException(status_code=400, detail=str(CutInfo.failed_no_intersection))
@@ -65,23 +75,23 @@ def put_cut_request(cut_id: UUID, request: CutRequest):
         case CutInfo.failed_polygon_less_than_three_vertices:
             raise HTTPException(status_code=400, detail=CutInfo.failed_polygon_less_than_three_vertices)
         case CutInfo.successful:
-            cut = Cut(id=cut_id, request=request, result=result)
-            db[cut_id] = cut
-            return cut_id
+            cut = Cut(id=update.id, request=update.request, result=result)
+            db[update.id] = cut
+            return update.id
 
 
-@app.get("/api/poly-cut/{cut_id}", response_model=Cut)
-def fetch_cut(cut_id: UUID):
+@app.get("/api/poly-cut/{id}", response_model=Cut)
+def fetch_cut(id: str):
     """Fetch a cut by its id"""
-    if cut_id not in db.keys():
+    if id not in db.keys():
         raise HTTPException(status_code=404, detail="Cut not found")
-    return db[cut_id]
+    return db[id]
 
 
 @app.delete("/api/poly-cut/{id}")
-def delete_cut(cut_id: UUID):
+def delete_cut(id: str):
     """Delete a cut by its id"""
-    if cut_id not in db.keys():
+    if id not in db.keys():
         raise HTTPException(status_code=404, detail="Cut not found")
-    del db[cut_id]
-    return
+    del db[id]
+    return None

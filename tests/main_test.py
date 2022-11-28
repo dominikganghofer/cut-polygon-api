@@ -7,6 +7,7 @@ from math import cos, sin, radians
 
 from polycut.models import CutInfo
 from polycut.main import app
+
 # from debug2D import plot_cut # disable for pytest
 
 client = TestClient(app)
@@ -33,17 +34,21 @@ def test_update_cut():
     id = response.json()
     assert id is not None
 
-    data = {
-        "polygon": [
-            {"x": 0, "y": 0, "z": 0},
-            {"x": 10, "y": 10, "z": 0},
-            {"x": 10, "y": 0, "z": 0},
-        ],
-        "plane_origin": {"x": 0.5, "y": 0, "z": 0},
-        "plane_normal": {"x": 1, "y": 0, "z": 0},
+    update_data = {
+        "id": id,
+        "request": {
+
+            "polygon": [
+                {"x": 0, "y": 0, "z": 0},
+                {"x": 10, "y": 10, "z": 0},
+                {"x": 10, "y": 0, "z": 0},
+            ],
+            "plane_origin": {"x": 0.5, "y": 0, "z": 0},
+            "plane_normal": {"x": 1, "y": 0, "z": 0},
+        }
     }
 
-    response = client.put(f"/api/poly-cut/{id}", json=data)
+    response = client.put(f"/api/poly-cut/{id}", json=update_data)
     assert response.status_code == status.HTTP_200_OK
     result = client.get(f"/api/poly-cut/{id}")
     assert result.status_code == status.HTTP_200_OK
@@ -51,18 +56,23 @@ def test_update_cut():
 
 
 def test_update_non_existing():
-    data = {
-        "polygon": [
-            {"x": 0, "y": 0, "z": 0},
-            {"x": 1, "y": 1, "z": 0},
-            {"x": 1, "y": 0, "z": 0},
-        ],
-        "plane_origin": {"x": 0, "y": 0, "z": 0},
-        "plane_normal": {"x": 1, "y": 0, "z": 0},
+    random_id = str(uuid4())
+
+    update_data = {
+        "id": random_id,
+        "request": {
+
+            "polygon": [
+                {"x": 0, "y": 0, "z": 0},
+                {"x": 10, "y": 10, "z": 0},
+                {"x": 10, "y": 0, "z": 0},
+            ],
+            "plane_origin": {"x": 0.5, "y": 0, "z": 0},
+            "plane_normal": {"x": 1, "y": 0, "z": 0},
+        }
     }
 
-    random_id = uuid4()
-    response = client.put(f"/api/poly-cut/{random_id}", json=data)
+    response = client.put(f"/api/poly-cut/{random_id}", json=update_data)
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
