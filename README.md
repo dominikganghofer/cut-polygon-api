@@ -13,7 +13,7 @@ A tiny REST API that cuts polygons along a plane
 
 // clone the repo
 git clone git@github.com:dominikganghofer/cut-polygon-api.git
-cd cut-polygon-api
+cd polycut-api
 
 // optional: create a virtual environment
 virtualenv venv
